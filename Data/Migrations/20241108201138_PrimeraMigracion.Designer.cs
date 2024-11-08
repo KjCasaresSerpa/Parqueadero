@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Parqueadero.Data.Migrations
 {
     [DbContext(typeof(ParqueaderoContext))]
-    [Migration("20241105190358_correccionesEnTarifa")]
-    partial class correccionesEnTarifa
+    [Migration("20241108201138_PrimeraMigracion")]
+    partial class PrimeraMigracion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,7 +32,7 @@ namespace Parqueadero.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("HoraEntrada")
+                    b.Property<DateTime?>("HoraEntrada")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("HoraSalida")
@@ -42,12 +42,7 @@ namespace Parqueadero.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TarifaId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TarifaId");
 
                     b.ToTable("Bicicletas");
                 });
@@ -60,7 +55,7 @@ namespace Parqueadero.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("HoraEntrada")
+                    b.Property<DateTime?>("HoraEntrada")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("HoraSalida")
@@ -70,12 +65,7 @@ namespace Parqueadero.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TarifaId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TarifaId");
 
                     b.ToTable("Carros");
                 });
@@ -108,7 +98,7 @@ namespace Parqueadero.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("HoraEntrada")
+                    b.Property<DateTime?>("HoraEntrada")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("HoraSalida")
@@ -118,12 +108,7 @@ namespace Parqueadero.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TarifaId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TarifaId");
 
                     b.ToTable("Motos");
                 });
@@ -170,33 +155,6 @@ namespace Parqueadero.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tarifas");
-                });
-
-            modelBuilder.Entity("Bicicleta", b =>
-                {
-                    b.HasOne("Tarifa", "Tarifa")
-                        .WithMany()
-                        .HasForeignKey("TarifaId");
-
-                    b.Navigation("Tarifa");
-                });
-
-            modelBuilder.Entity("Carro", b =>
-                {
-                    b.HasOne("Tarifa", "Tarifa")
-                        .WithMany()
-                        .HasForeignKey("TarifaId");
-
-                    b.Navigation("Tarifa");
-                });
-
-            modelBuilder.Entity("Moto", b =>
-                {
-                    b.HasOne("Tarifa", "Tarifa")
-                        .WithMany()
-                        .HasForeignKey("TarifaId");
-
-                    b.Navigation("Tarifa");
                 });
 #pragma warning restore 612, 618
         }
