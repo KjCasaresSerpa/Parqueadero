@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Parqueadero.Data.Migrations
 {
     [DbContext(typeof(ParqueaderoContext))]
-    partial class ParqueaderoContextModelSnapshot : ModelSnapshot
+    [Migration("20241112174133_NuevaReserva")]
+    partial class NuevaReserva
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,9 +42,6 @@ namespace Parqueadero.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("TotalAPAgar")
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Bicicletas");
@@ -64,9 +64,6 @@ namespace Parqueadero.Data.Migrations
                     b.Property<string>("Placa")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("TotalAPAgar")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -111,9 +108,6 @@ namespace Parqueadero.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("TotalAPAgar")
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Motos");
@@ -130,14 +124,15 @@ namespace Parqueadero.Data.Migrations
                     b.Property<DateTime>("HoraEstimadaLlegada")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("HoraEstimadaSalida")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Placa")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TipoVehiculo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TotalAPAgar")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

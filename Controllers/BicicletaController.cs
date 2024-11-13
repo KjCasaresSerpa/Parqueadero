@@ -24,11 +24,11 @@ namespace Parqueadero.Controllers
             return await _context.Bicicletas.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Bicicleta>> ObtenerBicicleta(int id)
         {
             var bicicleta = await _context.Bicicletas.FindAsync(id);
-            if(bicicleta==null)
+            if (bicicleta == null)
             {
                 return Conflict("Hubo un problema en cargar su bicicleta");
             }
@@ -40,57 +40,65 @@ namespace Parqueadero.Controllers
         {
             bicicleta.HoraEntrada = DateTime.Now;
             _context.Bicicletas.Add(bicicleta);
+            var espacioB = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Bicicleta");
+
+            if (espacioB == null)
+            {
+                return Conflict("Hubo un problema al cargar los espacios para 'Bicicleta'");
+            }
+
+            espacioB.CantidadEspacios -= 1;
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(ObtenerBicicleta), new{id=bicicleta.Id}, bicicleta);
+            return CreatedAtAction(nameof(ObtenerBicicleta), new { id = bicicleta.Id }, bicicleta);
         }
 
-         [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutBicicleta(int id, Bicicleta bicicleta)
-    {
-        if (id != bicicleta.Id)
         {
-            return BadRequest();
-        }
-
-        _context.Entry(bicicleta).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!BicicletaExists(id))
+            if (id != bicicleta.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
-            else
-            {
-                throw;
-            }
-        }
 
-        return NoContent();
+            _context.Entry(bicicleta).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BicicletaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBicicleta(int id)
         {
-        var bicicleta = await _context.Bicicletas.FindAsync(id);
-        if (ObtenerBicicletas == null)
-        {
-            return NotFound();
-        }
+            var bicicleta = await _context.Bicicletas.FindAsync(id);
+            if (bicicleta == null)
+            {
+                return NotFound();
+            }
 
-        _context.Bicicletas.Remove(bicicleta);
-        await _context.SaveChangesAsync();
+            _context.Bicicletas.Remove(bicicleta);
+            await _context.SaveChangesAsync();
 
-        return NoContent();
+            return NoContent();
         }
 
         private bool BicicletaExists(int id)
         {
-        return _context.Bicicletas.Any(e => e.Id == id);
+            return _context.Bicicletas.Any(e => e.Id == id);
         }
     }
 

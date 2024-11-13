@@ -24,11 +24,11 @@ namespace Parqueadero.Controllers
             return await _context.Carros.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Carro>> ObtenerCarro(int id)
         {
             var carro = await _context.Carros.FindAsync(id);
-            if(carro==null)
+            if (carro == null)
             {
                 return Conflict("Hubo un problema en cargar su Carro");
             }
@@ -40,57 +40,66 @@ namespace Parqueadero.Controllers
         {
             carro.HoraEntrada = DateTime.Now;
             _context.Carros.Add(carro);
+            var espacio = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Carro"); // Esta linea busca en la tabla ese registro de tipo carro
+
+            if (espacio == null)
+            {
+                return Conflict("Hubo un problema al cargar los espacios para 'Carro'");
+            }
+
+             espacio.CantidadEspacios -= 1;
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(ObtenerCarro), new{id=carro.Id}, carro);
+            
+            return CreatedAtAction(nameof(ObtenerCarro), new { id = carro.Id }, carro);
         }
 
-         [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutCarro(int id, Carro carro)
-    {
-        if (id != carro.Id)
         {
-            return BadRequest();
-        }
-
-        _context.Entry(carro).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!CarroExists(id))
+            if (id != carro.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
-            else
-            {
-                throw;
-            }
-        }
 
-        return NoContent();
+            _context.Entry(carro).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CarroExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCarro(int id)
         {
-        var carro = await _context.  Carros.FindAsync(id);
-        if (ObtenerCarros == null)
-        {
-            return NotFound();
-        }
+            var carro = await _context.Carros.FindAsync(id);
+            if (carro == null)
+            {
+                return NotFound();
+            }
 
-        _context.Carros.Remove(carro);
-        await _context.SaveChangesAsync();
+            _context.Carros.Remove(carro);
+            await _context.SaveChangesAsync();
 
-        return NoContent();
+            return NoContent();
         }
 
         private bool CarroExists(int id)
         {
-        return _context.Carros.Any(e => e.Id == id);
+            return _context.Carros.Any(e => e.Id == id);
         }
     }
 

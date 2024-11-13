@@ -24,7 +24,7 @@ namespace Parqueadero.Controllers
             return await _context.Motos.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Moto>> ObtenerMoto(int id)
         {
             var moto = await _context.Motos.FindAsync(id);
@@ -40,6 +40,14 @@ namespace Parqueadero.Controllers
         {
             moto.HoraEntrada = DateTime.Now;
             _context.Motos.Add(moto);
+            var espacioM = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Moto");
+
+            if (espacioM == null)
+            {
+                return Conflict("Hubo un problema al cargar los espacios para 'Moto'");
+            }
+
+             espacioM.CantidadEspacios -= 1;
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(ObtenerMoto), new{id=moto.Id}, moto);
         }
@@ -77,7 +85,7 @@ namespace Parqueadero.Controllers
         public async Task<IActionResult> DeleteMoto(int id)
         {
         var moto = await _context.Motos.FindAsync(id);
-        if (ObtenerMotos == null)
+        if (moto == null)
         {
             return NotFound();
         }

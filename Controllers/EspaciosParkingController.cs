@@ -24,7 +24,7 @@ namespace Parqueadero.Controllers
             return await _context.EspaciosParkings.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<EspaciosParking>> ObtenerEspaciosParking(int id)
         {
             var espaciosparking = await _context.EspaciosParkings.FindAsync(id);
@@ -77,7 +77,7 @@ namespace Parqueadero.Controllers
         public async Task<IActionResult> DeleteEspaciosParking(int id)
         {
         var espaciosparking = await _context.EspaciosParkings.FindAsync(id);
-        if (ObtenerEspaciosParkings == null)
+        if (espaciosparking == null)
         {
             return NotFound();
         }

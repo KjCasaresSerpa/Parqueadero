@@ -24,7 +24,7 @@ namespace Parqueadero.Controllers
             return await _context.Tarifas.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Tarifa>> ObtenerTarifas(int id)
         {
             var tarifa = await _context.Tarifas.FindAsync(id);
@@ -38,7 +38,7 @@ namespace Parqueadero.Controllers
         [HttpPost]
         public async Task<ActionResult<Tarifa>> CrearTarifa(Tarifa tarifa)
         {
-            
+        
             _context.Tarifas.Add(tarifa);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(ObtenerTarifas), new{id=tarifa.Id}, tarifa);
@@ -77,7 +77,7 @@ namespace Parqueadero.Controllers
         public async Task<IActionResult> DeleteTarifa(int id)
         {
         var tarifa = await _context.Tarifas.FindAsync(id);
-        if (ObtenerTarifas == null)
+        if (tarifa == null)
         {
             return NotFound();
         }

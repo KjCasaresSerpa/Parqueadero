@@ -24,11 +24,11 @@ namespace Parqueadero.Controllers
             return await _context.Reservas.ToListAsync();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Reserva>> ObtenerReservas(int id)
         {
             var reserva = await _context.Reservas.FindAsync(id);
-            if(reserva==null)
+            if (reserva == null)
             {
                 return Conflict("ha ocurrido un error");
             }
@@ -38,59 +38,70 @@ namespace Parqueadero.Controllers
         [HttpPost]
         public async Task<ActionResult<Reserva>> CrearReserva(Reserva reserva)
         {
-            reserva.HoraEstimadaLlegada = DateTime.Now;
+
+            var espacioR = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == reserva.TipoVehiculo);
+
+            if (espacioR == null)
+            {
+                return Conflict("Hubo un error al cargar los espacios");
+            }
+            if(espacioR.CantidadEspacios == 0)
+            {
+                return Conflict("No hay espacios disponibles para este tipo de vehiculo");
+            }
+            espacioR.CantidadEspacios -= 1;
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(ObtenerReservas), new{id=reserva.Id}, reserva);
+            return CreatedAtAction(nameof(ObtenerReservas), new { id = reserva.Id }, reserva);
         }
 
-         [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutReserva(int id, Reserva reserva)
-    {
-        if (id != reserva.Id)
         {
-            return BadRequest();
-        }
-
-        _context.Entry(reserva).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ReservaExists(id))
+            if (id != reserva.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
-            else
-            {
-                throw;
-            }
-        }
 
-        return NoContent();
+            _context.Entry(reserva).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReserva(int id)
         {
-        var reserva = await _context.Reservas.FindAsync(id);
-        if (ObtenerReservas == null)
-        {
-            return NotFound();
-        }
+            var reserva = await _context.Reservas.FindAsync(id);
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
-        _context.Reservas.Remove(reserva);
-        await _context.SaveChangesAsync();
+            _context.Reservas.Remove(reserva);
+            await _context.SaveChangesAsync();
 
-        return NoContent();
+            return NoContent();
         }
 
         private bool ReservaExists(int id)
         {
-        return _context.Reservas.Any(e => e.Id == id);
+            return _context.Reservas.Any(e => e.Id == id);
         }
     }
 
