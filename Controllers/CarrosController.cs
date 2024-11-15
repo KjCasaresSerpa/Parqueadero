@@ -48,21 +48,24 @@ namespace Parqueadero.Controllers
             }
             if (espacio.CantidadEspacios == 0)
             {
-                return Conflict ("No hay espacios disponibles para el tipo de vehiculo");
+                return Conflict("No hay espacios disponibles para el tipo de vehiculo");
             }
+
+
 
             espacio.CantidadEspacios -= 1;
 
             TimeSpan tiempo;
 
-            if(carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
+            if (carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
             {
                 tiempo = carro.HoraSalida.Value - carro.HoraEntrada.Value;
-                var valor = await _context.Tarifas.FirstOrDefaultAsync(t=> t.TipoVehiculo == "Carro" );
+                var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Carro");
                 decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
                 carro.TotalAPAgar = valorHoras;
             }
-            else{
+            else
+            {
                 Conflict("Hubo un problema al calcular el tiempo de permanencia");
             }
 
@@ -120,7 +123,39 @@ namespace Parqueadero.Controllers
         {
             return _context.Carros.Any(e => e.Id == id);
         }
-    }
 
+    
+        [HttpPatch("salida/{id}")]
+        public async Task<IActionResult> SalidaAutomatica(int id)
+        {
+            var carro = await _context.Carros.FindAsync(id);
+
+            DateTime salida = DateTime.Now;
+
+            carro.HoraSalida = salida;
+
+
+            TimeSpan tiempo;
+
+            if (carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
+            {
+                tiempo = carro.HoraSalida.Value - carro.HoraEntrada.Value;
+                var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Carro");
+                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
+                carro.TotalAPAgar = valorHoras;
+            }
+            else
+            {
+                return Conflict("Hubo un problema al calcular el tiempo de permanencia");
+            }
+
+            await _context.SaveChangesAsync();
+            
+            return NoContent();
+
+
+        }
+
+    }
 
 }

@@ -36,19 +36,42 @@ namespace Parqueadero.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Bicicleta>> CrearBicicleta(Bicicleta bicicleta)
+         public async Task<ActionResult<Bicicleta>> CrearBicicleta(Bicicleta bicicleta)
         {
             bicicleta.HoraEntrada = DateTime.Now;
             _context.Bicicletas.Add(bicicleta);
-            var espacioB = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Bicicleta");
+            var espacioB = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Bicicleta"); 
 
             if (espacioB == null)
             {
                 return Conflict("Hubo un problema al cargar los espacios para 'Bicicleta'");
             }
+            if (espacioB.CantidadEspacios == 0)
+            {
+                return Conflict("No hay espacios disponibles para el tipo de vehiculo");
+            }
+
+
 
             espacioB.CantidadEspacios -= 1;
+
+            TimeSpan tiempo;
+
+            if (bicicleta.HoraSalida.HasValue && bicicleta.HoraEntrada.HasValue)
+            {
+                tiempo = bicicleta.HoraSalida.Value - bicicleta.HoraEntrada.Value;
+                var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Bicicleta");
+                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
+                bicicleta.TotalAPAgar = valorHoras;
+            }
+            else
+            {
+                Conflict("Hubo un problema al calcular el tiempo de permanencia");
+            }
+
+
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(ObtenerBicicleta), new { id = bicicleta.Id }, bicicleta);
         }
 
@@ -99,6 +122,37 @@ namespace Parqueadero.Controllers
         private bool BicicletaExists(int id)
         {
             return _context.Bicicletas.Any(e => e.Id == id);
+        }
+
+        [HttpPatch("salida/{id}")]
+        public async Task<IActionResult> SalidaAutomatica(int id)
+        {
+            var bicicleta = await _context.Bicicletas.FindAsync(id);
+
+            DateTime salida = DateTime.Now;
+
+            bicicleta.HoraSalida = salida;
+
+
+            TimeSpan tiempo;
+
+            if (bicicleta.HoraSalida.HasValue && bicicleta.HoraEntrada.HasValue)
+            {
+                tiempo = bicicleta.HoraSalida.Value - bicicleta.HoraEntrada.Value;
+                var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Bicicleta");
+                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
+                bicicleta.TotalAPAgar = valorHoras;
+            }
+            else
+            {
+                return Conflict("Hubo un problema al calcular el tiempo de permanencia");
+            }
+
+            await _context.SaveChangesAsync();
+            
+            return NoContent();
+
+
         }
     }
 
