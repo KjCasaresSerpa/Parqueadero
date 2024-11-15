@@ -38,7 +38,6 @@ namespace Parqueadero.Controllers
         [HttpPost]
         public async Task<ActionResult<Reserva>> CrearReserva(Reserva reserva)
         {
-
             var espacioR = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == reserva.TipoVehiculo);
 
             if (espacioR == null)

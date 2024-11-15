@@ -46,10 +46,29 @@ namespace Parqueadero.Controllers
             {
                 return Conflict("Hubo un problema al cargar los espacios para 'Carro'");
             }
+            if (espacio.CantidadEspacios == 0)
+            {
+                return Conflict ("No hay espacios disponibles para el tipo de vehiculo");
+            }
 
-             espacio.CantidadEspacios -= 1;
+            espacio.CantidadEspacios -= 1;
+
+            TimeSpan tiempo;
+
+            if(carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
+            {
+                tiempo = carro.HoraSalida.Value - carro.HoraEntrada.Value;
+                var valor = await _context.Tarifas.FirstOrDefaultAsync(t=> t.TipoVehiculo == "Carro" );
+                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
+                carro.TotalAPAgar = valorHoras;
+            }
+            else{
+                Conflict("Hubo un problema al calcular el tiempo de permanencia");
+            }
+
+
             await _context.SaveChangesAsync();
-            
+
             return CreatedAtAction(nameof(ObtenerCarro), new { id = carro.Id }, carro);
         }
 
