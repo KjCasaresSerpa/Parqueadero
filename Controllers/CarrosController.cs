@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -51,22 +52,25 @@ namespace Parqueadero.Controllers
                 return Conflict("No hay espacios disponibles para el tipo de vehiculo");
             }
 
-
-
             espacio.CantidadEspacios -= 1;
 
             TimeSpan tiempo;
 
             if (carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
             {
-                tiempo = carro.HoraSalida.Value - carro.HoraEntrada.Value;
+                tiempo = carro.HoraEntrada.Value - carro.HoraSalida.Value;
                 var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Carro");
-                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
-                carro.TotalAPAgar = valorHoras;
+                decimal minutos_A_Horas = (decimal)tiempo.Minutes / 60;
+
+                decimal descuento = calcularDescuentos(carro);
+
+                decimal ValorMinutos = Math.Ceiling(descuento > 0 ? descuento : valor.CostoPorHora * minutos_A_Horas / 100) * 100;
+                decimal ValorHoras = descuento > 0 ? descuento : valor.CostoPorHora * tiempo.Hours;
+                carro.TotalAPAgar = ValorMinutos + ValorHoras;
             }
             else
             {
-                Conflict("Hubo un problema al calcular el tiempo de permanencia");
+                return Conflict("Hubo un problema al calcular el tiempo de permanencia");
             }
 
 
@@ -124,7 +128,7 @@ namespace Parqueadero.Controllers
             return _context.Carros.Any(e => e.Id == id);
         }
 
-    
+
         [HttpPatch("salida/{id}")]
         public async Task<IActionResult> SalidaAutomatica(int id)
         {
@@ -150,8 +154,29 @@ namespace Parqueadero.Controllers
             }
 
             await _context.SaveChangesAsync();
-            
+
             return NoContent();
+
+
+        }
+
+        private decimal calcularDescuentos(Carro carro)
+        {
+            var tarifa = _context.Tarifas.FirstOrDefault(t => t.TipoVehiculo == "Carro");
+            int visitas = _context.Carros.Where(v => v.Placa == carro.Placa).Count();
+
+            if (tarifa == null)
+            {
+                return 0;
+            }
+
+            if (visitas > 1)
+            {
+                decimal descuento = tarifa.CostoPorHora * tarifa.Descuento;
+                return descuento;
+            }
+
+            return 0;
 
 
         }

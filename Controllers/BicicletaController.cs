@@ -36,11 +36,11 @@ namespace Parqueadero.Controllers
         }
 
         [HttpPost]
-         public async Task<ActionResult<Bicicleta>> CrearBicicleta(Bicicleta bicicleta)
+        public async Task<ActionResult<Bicicleta>> CrearBicicleta(Bicicleta bicicleta)
         {
             bicicleta.HoraEntrada = DateTime.Now;
             _context.Bicicletas.Add(bicicleta);
-            var espacioB = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Bicicleta"); 
+            var espacioB = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Bicicleta");
 
             if (espacioB == null)
             {
@@ -51,8 +51,6 @@ namespace Parqueadero.Controllers
                 return Conflict("No hay espacios disponibles para el tipo de vehiculo");
             }
 
-
-
             espacioB.CantidadEspacios -= 1;
 
             TimeSpan tiempo;
@@ -61,12 +59,15 @@ namespace Parqueadero.Controllers
             {
                 tiempo = bicicleta.HoraSalida.Value - bicicleta.HoraEntrada.Value;
                 var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Bicicleta");
-                decimal valorHoras = valor.CostoPorHora * tiempo.Hours;
-                bicicleta.TotalAPAgar = valorHoras;
+                decimal minutos_A_Horas = (decimal)tiempo.Minutes / 60;
+
+                decimal ValorMinutos = Math.Ceiling(valor.CostoPorHora * minutos_A_Horas / 100) * 100;
+                decimal ValorHoras = valor.CostoPorHora * tiempo.Hours;
+                bicicleta.TotalAPAgar = ValorMinutos + ValorHoras;
             }
             else
             {
-                Conflict("Hubo un problema al calcular el tiempo de permanencia");
+               return Conflict("Hubo un problema al calcular el tiempo de permanencia");
             }
 
 
@@ -149,10 +150,8 @@ namespace Parqueadero.Controllers
             }
 
             await _context.SaveChangesAsync();
-            
+
             return NoContent();
-
-
         }
     }
 

@@ -157,6 +157,9 @@ namespace Parqueadero.Data.Migrations
                     b.Property<decimal>("CostoPorHora")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("Descuento")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("TipoVehiculo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
