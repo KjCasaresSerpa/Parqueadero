@@ -35,11 +35,17 @@ namespace Parqueadero.Controllers
             }
             return carro;
         }
+        [HttpGet("reporte")]
+        public async Task<ActionResult<IEnumerable<Carro>>> ReporteCarros()
+        {
+            var carros = await _context.Carros.Where(c => DateTime.UtcNow <= c.HoraSalida ).ToListAsync();
+            return carros;
+        }
 
         [HttpPost]
         public async Task<ActionResult<Carro>> CrearCarro(Carro carro)
         {
-            carro.HoraEntrada = DateTime.Now;
+            carro.HoraEntrada = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
             _context.Carros.Add(carro);
             var espacio = await _context.EspaciosParkings.FirstOrDefaultAsync(e => e.Tipo == "Carro"); // Esta linea busca en la tabla ese registro de tipo carro
 
@@ -58,9 +64,10 @@ namespace Parqueadero.Controllers
 
             if (carro.HoraSalida.HasValue && carro.HoraEntrada.HasValue)
             {
+                
                 tiempo = carro.HoraEntrada.Value - carro.HoraSalida.Value;
                 var valor = await _context.Tarifas.FirstOrDefaultAsync(t => t.TipoVehiculo == "Carro");
-                decimal minutos_A_Horas = (decimal)tiempo.Minutes / 60;
+                decimal minutos_A_Horas = Math.Abs((decimal)tiempo.Minutes / 60);
 
                 decimal descuento = calcularDescuentos(carro);
 
